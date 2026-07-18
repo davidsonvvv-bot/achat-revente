@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { demoData, emptyData } from "@/lib/demo-data";
+import { emptyData } from "@/lib/demo-data";
 import { dataUrlToFile, hasPocketBase, loadPocketBaseData, pb } from "@/lib/pocketbase";
 import type { AppData, Cost, Repair, Sale, Vehicle } from "@/lib/types";
 
@@ -12,10 +12,10 @@ type Store = {
   updateVehicle: (id: string, fields: Partial<Vehicle>) => Promise<void>;
   addRepair: (repair: Omit<Repair, "id">) => Promise<void>; addCost: (cost: Omit<Cost, "id">) => Promise<void>;
   sellVehicle: (sale: Omit<Sale, "id">) => Promise<void>; correctSale: (sale: Sale) => Promise<void>;
-  deleteVehicle: (id: string) => Promise<void>; resetDemo: () => void;
+  deleteVehicle: (id: string) => Promise<void>;
 };
 const AppContext = createContext<Store | null>(null);
-const storageKey = "parc-auto-data-v1";
+const storageKey = "parc-auto-data-v2";
 const uid = () => typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
 const localDate = (value: string) => value ? `${value} 12:00:00.000Z` : "";
 
@@ -29,7 +29,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (hasPocketBase) { void refresh(); return; }
-    const saved = window.localStorage.getItem(storageKey); setData(saved ? JSON.parse(saved) : demoData); setReady(true);
+    const saved = window.localStorage.getItem(storageKey); setData(saved ? JSON.parse(saved) : emptyData); setReady(true);
   }, [refresh]);
   useEffect(() => { if (!hasPocketBase && ready) window.localStorage.setItem(storageKey, JSON.stringify(data)); }, [data, ready]);
 
@@ -54,8 +54,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
     async addCost(cost) { if (!pb) { setData((current) => ({ ...current, costs: [{ ...cost, id: uid() }, ...current.costs] })); return; } await pb.collection("costs").create({ vehicle: cost.vehicleId, title: cost.title, category: cost.category, amount: cost.amount, cost_date: localDate(cost.date), comment: cost.comment }); await refresh(); },
     async sellVehicle(sale) { if (!pb) { setData((current) => ({ ...current, sales: [...current.sales.filter((item) => item.vehicleId !== sale.vehicleId), { ...sale, id: uid() }] })); return; } await pb.collection("sales").create({ vehicle: sale.vehicleId, sale_date: localDate(sale.date), sale_price: sale.price, buyer_name: sale.buyerName, buyer_phone: sale.buyerPhone, sale_mileage: sale.mileage, comment: sale.comment }); await refresh(); },
     async correctSale(sale) { if (!pb) { setData((current) => ({ ...current, sales: current.sales.map((item) => item.id === sale.id ? sale : item) })); return; } await pb.collection("sales").update(sale.id, { sale_date: localDate(sale.date), sale_price: sale.price, buyer_name: sale.buyerName, buyer_phone: sale.buyerPhone, sale_mileage: sale.mileage, comment: sale.comment }); await refresh(); },
-    async deleteVehicle(id) { if (!pb) { setData((current) => ({ vehicles: current.vehicles.filter((item) => item.id !== id), repairs: current.repairs.filter((item) => item.vehicleId !== id), costs: current.costs.filter((item) => item.vehicleId !== id), sales: current.sales.filter((item) => item.vehicleId !== id) })); return; } await pb.collection("vehicles").delete(id); await refresh(); },
-    resetDemo() { if (!hasPocketBase) setData(demoData); }
+    async deleteVehicle(id) { if (!pb) { setData((current) => ({ vehicles: current.vehicles.filter((item) => item.id !== id), repairs: current.repairs.filter((item) => item.vehicleId !== id), costs: current.costs.filter((item) => item.vehicleId !== id), sales: current.sales.filter((item) => item.vehicleId !== id) })); return; } await pb.collection("vehicles").delete(id); await refresh(); }
   }), [data, ready, authenticated, userEmail, error, refresh]);
   return <AppContext.Provider value={store}>{children}</AppContext.Provider>;
 }
