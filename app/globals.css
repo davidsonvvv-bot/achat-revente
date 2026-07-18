@@ -2,9 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: light; }
+:root { color-scheme: light; background: #f7f7f5; }
 * { -webkit-tap-highlight-color: transparent; }
-body { margin: 0; background: #f7f7f5; color: #1d2924; font-family: Arial, Helvetica, sans-serif; }
+html, body { min-height: 100%; }
+body { margin: 0; background: #f7f7f5; color: #1d2924; font-family: Arial, Helvetica, sans-serif; overscroll-behavior-y: none; }
 button, input, select, textarea { font: inherit; }
 input, select, textarea { width: 100%; border: 1px solid #d9dfda; border-radius: 14px; background: #fff; padding: 12px 14px; outline: none; }
 input:focus, select:focus, textarea:focus { border-color: #2f7255; box-shadow: 0 0 0 3px rgba(47,114,85,.12); }
