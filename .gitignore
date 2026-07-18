@@ -19,3 +19,5 @@ outputs/
 # PocketBase local runtime
 pocketbase/pocketbase
 pocketbase/pb_data/
+pocketbase/CHANGELOG.md
+pocketbase/LICENSE.md
