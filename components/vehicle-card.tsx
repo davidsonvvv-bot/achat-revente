@@ -12,7 +12,7 @@ export function VehicleCard({ vehicle, data, sold = false }: { vehicle: Vehicle;
     <div className="relative aspect-[16/8] bg-[#e8ece7]">{vehicle.photo ? <img src={vehicle.photo} alt={`${vehicle.brand} ${vehicle.model}`} className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-sm text-[#708077]">Sans photo</div>}
       <div className="absolute left-3 top-3">{sold ? <StatusBadge status="Terminée" /> : <StatusBadge status={vehicle.status} />}</div>
     </div>
-    <div className="p-4"><div className="flex items-start justify-between gap-3"><div><h2 className="text-lg font-bold tracking-tight">{vehicle.brand} {vehicle.model}</h2><p className="mt-0.5 text-sm text-[#708077]">{vehicle.year || "Année inconnue"} · {vehicle.mileage.toLocaleString("fr-BE")} km</p></div><ArrowIcon className="mt-1 h-5 w-5 shrink-0 text-[#8a968f]" /></div>
+    <div className="p-4"><div className="flex items-start justify-between gap-3"><div><h2 className="text-lg font-bold tracking-tight">{vehicle.brand || vehicle.model ? `${vehicle.brand} ${vehicle.model}` : "Véhicule sans nom"}</h2><p className="mt-0.5 text-sm text-[#708077]">{vehicle.year || "Année inconnue"} · {vehicle.mileage.toLocaleString("fr-BE")} km</p></div><ArrowIcon className="mt-1 h-5 w-5 shrink-0 text-[#8a968f]" /></div>
       <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-[#edf0ed] pt-3 text-xs"><Metric label="Achat" value={money(vehicle.purchasePrice)} /><Metric label="Coût total" value={money(cost)} /><Metric label={sold ? "Vente" : "Vente prévue"} value={money(sold ? sale?.price || 0 : vehicle.targetPrice || 0)} /><Metric label={sold ? "Bénéfice" : "Bénéfice prévu"} value={money(benefit)} emphasis /></div>
     </div>
   </Link>;
