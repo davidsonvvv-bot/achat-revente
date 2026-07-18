@@ -15,3 +15,7 @@ out/
 pnpm-debug.log*
 work/
 outputs/
+
+# PocketBase local runtime
+pocketbase/pocketbase
+pocketbase/pb_data/
