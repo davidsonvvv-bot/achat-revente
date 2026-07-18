@@ -1,0 +1,11 @@
+import type { ReactNode } from "react";
+type IconProps = { className?: string };
+const icon = (path: ReactNode) => ({ className = "" }: IconProps) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>{path}</svg>;
+export const CarIcon = icon(<><path d="M5 17h14"/><path d="m6 17-1-4 2-5h10l2 5-1 4"/><path d="M8 17v2M16 17v2M7 13h.01M17 13h.01"/></>);
+export const ChartIcon = icon(<><path d="M4 19V5M4 19h16"/><path d="m7 15 4-4 3 2 5-6"/></>);
+export const CheckCircleIcon = icon(<><circle cx="12" cy="12" r="8"/><path d="m8.5 12 2.2 2.2 4.8-4.8"/></>);
+export const PlusIcon = icon(<path d="M12 5v14M5 12h14"/>);
+export const ArrowIcon = icon(<path d="m9 18 6-6-6-6"/>);
+export const BackIcon = icon(<path d="m15 18-6-6 6-6"/>);
+export const MoreIcon = icon(<><circle cx="5" cy="12" r=".8" fill="currentColor"/><circle cx="12" cy="12" r=".8" fill="currentColor"/><circle cx="19" cy="12" r=".8" fill="currentColor"/></>);
+export const CameraIcon = icon(<><path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3"/></>);

@@ -1,0 +1,17 @@
+# Dependencies and generated builds
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Local-only files
+.DS_Store
+*.log
+pnpm-debug.log*
+work/
+outputs/
