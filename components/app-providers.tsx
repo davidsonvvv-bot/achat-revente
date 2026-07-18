@@ -21,9 +21,9 @@ const localDate = (value: string) => value ? `${value} 12:00:00.000Z` : "";
 
 export function AppProviders({ children }: { children: ReactNode }) {
   const [data, setData] = useState<AppData>(emptyData); const [ready, setReady] = useState(false); const [error, setError] = useState("");
-  const authenticated = Boolean(pb?.authStore.isValid); const userEmail = pb?.authStore.record?.email;
+  const authenticated = true; const userEmail = undefined;
   const refresh = useCallback(async () => {
-    if (!hasPocketBase || !pb?.authStore.isValid) { setData(emptyData); setReady(true); return; }
+    if (!hasPocketBase) { setData(emptyData); setReady(true); return; }
     try { setError(""); setData(await loadPocketBaseData()); } catch (cause) { setError(cause instanceof Error ? cause.message : "Impossible de charger les données PocketBase."); } finally { setReady(true); }
   }, []);
 
@@ -36,12 +36,11 @@ export function AppProviders({ children }: { children: ReactNode }) {
   const localAddVehicle = (vehicle: Omit<Vehicle, "id" | "createdAt" | "updatedAt">) => { const id = uid(); const now = new Date().toISOString(); setData((current) => ({ ...current, vehicles: [{ ...vehicle, id, createdAt: now, updatedAt: now }, ...current.vehicles] })); return id; };
   const store = useMemo<Store>(() => ({
     data, ready, backendEnabled: hasPocketBase, authenticated, userEmail, error,
-    async signIn(email, password) { if (!pb) return; await pb.collection("app_users").authWithPassword(email, password); await refresh(); },
-    signOut() { pb?.authStore.clear(); setData(emptyData); setReady(true); }, refresh,
+    async signIn() { await refresh(); },
+    signOut() { setData(emptyData); setReady(true); }, refresh,
     async addVehicle(vehicle) {
       if (!pb) return localAddVehicle(vehicle);
-      const owner = pb.authStore.record?.id; if (!owner) throw new Error("Connectez-vous avant d’ajouter un véhicule.");
-      const body: Record<string, unknown> = { owner, brand: vehicle.brand, model: vehicle.model, trim: vehicle.trim, year: vehicle.year || 0, fuel: vehicle.fuel, transmission: vehicle.transmission, mileage: vehicle.mileage, purchase_date: localDate(vehicle.purchaseDate), purchase_price: vehicle.purchasePrice, target_price: vehicle.targetPrice || 0, registration: vehicle.registration, vin: vehicle.vin, seller: vehicle.seller, seller_phone: vehicle.sellerPhone, description: vehicle.description, notes: vehicle.notes, status: vehicle.status };
+      const body: Record<string, unknown> = { brand: vehicle.brand, model: vehicle.model, trim: vehicle.trim, year: vehicle.year || 0, fuel: vehicle.fuel, transmission: vehicle.transmission, mileage: vehicle.mileage, purchase_date: localDate(vehicle.purchaseDate), purchase_price: vehicle.purchasePrice, target_price: vehicle.targetPrice || 0, registration: vehicle.registration, vin: vehicle.vin, seller: vehicle.seller, seller_phone: vehicle.sellerPhone, description: vehicle.description, notes: vehicle.notes, status: vehicle.status };
       if (vehicle.photo?.startsWith("data:")) body.main_photo = await dataUrlToFile(vehicle.photo);
       const record = await pb.collection("vehicles").create(body); await refresh(); return record.id;
     },
@@ -51,9 +50,9 @@ export function AppProviders({ children }: { children: ReactNode }) {
       Object.entries(fields).forEach(([key, value]) => { if (value !== undefined && !["id", "createdAt", "updatedAt", "photo"].includes(key)) body[map[key] || key] = key === "purchaseDate" ? localDate(String(value)) : value; });
       await pb.collection("vehicles").update(id, body); await refresh();
     },
-    async addRepair(repair) { if (!pb) { setData((current) => ({ ...current, repairs: [{ ...repair, id: uid() }, ...current.repairs] })); return; } const owner = pb.authStore.record?.id; if (!owner) throw new Error("Connectez-vous avant d’ajouter une réparation."); await pb.collection("repairs").create({ owner, vehicle: repair.vehicleId, title: repair.title, description: repair.description, repair_date: localDate(repair.date), amount: repair.amount, provider: repair.provider, status: repair.status }); await refresh(); },
-    async addCost(cost) { if (!pb) { setData((current) => ({ ...current, costs: [{ ...cost, id: uid() }, ...current.costs] })); return; } const owner = pb.authStore.record?.id; if (!owner) throw new Error("Connectez-vous avant d’ajouter un coût."); await pb.collection("costs").create({ owner, vehicle: cost.vehicleId, title: cost.title, category: cost.category, amount: cost.amount, cost_date: localDate(cost.date), comment: cost.comment }); await refresh(); },
-    async sellVehicle(sale) { if (!pb) { setData((current) => ({ ...current, sales: [...current.sales.filter((item) => item.vehicleId !== sale.vehicleId), { ...sale, id: uid() }] })); return; } const owner = pb.authStore.record?.id; if (!owner) throw new Error("Connectez-vous avant de déclarer une vente."); await pb.collection("sales").create({ owner, vehicle: sale.vehicleId, sale_date: localDate(sale.date), sale_price: sale.price, buyer_name: sale.buyerName, buyer_phone: sale.buyerPhone, sale_mileage: sale.mileage, comment: sale.comment }); await refresh(); },
+    async addRepair(repair) { if (!pb) { setData((current) => ({ ...current, repairs: [{ ...repair, id: uid() }, ...current.repairs] })); return; } await pb.collection("repairs").create({ vehicle: repair.vehicleId, title: repair.title, description: repair.description, repair_date: localDate(repair.date), amount: repair.amount, provider: repair.provider, status: repair.status }); await refresh(); },
+    async addCost(cost) { if (!pb) { setData((current) => ({ ...current, costs: [{ ...cost, id: uid() }, ...current.costs] })); return; } await pb.collection("costs").create({ vehicle: cost.vehicleId, title: cost.title, category: cost.category, amount: cost.amount, cost_date: localDate(cost.date), comment: cost.comment }); await refresh(); },
+    async sellVehicle(sale) { if (!pb) { setData((current) => ({ ...current, sales: [...current.sales.filter((item) => item.vehicleId !== sale.vehicleId), { ...sale, id: uid() }] })); return; } await pb.collection("sales").create({ vehicle: sale.vehicleId, sale_date: localDate(sale.date), sale_price: sale.price, buyer_name: sale.buyerName, buyer_phone: sale.buyerPhone, sale_mileage: sale.mileage, comment: sale.comment }); await refresh(); },
     async correctSale(sale) { if (!pb) { setData((current) => ({ ...current, sales: current.sales.map((item) => item.id === sale.id ? sale : item) })); return; } await pb.collection("sales").update(sale.id, { sale_date: localDate(sale.date), sale_price: sale.price, buyer_name: sale.buyerName, buyer_phone: sale.buyerPhone, sale_mileage: sale.mileage, comment: sale.comment }); await refresh(); },
     async deleteVehicle(id) { if (!pb) { setData((current) => ({ vehicles: current.vehicles.filter((item) => item.id !== id), repairs: current.repairs.filter((item) => item.vehicleId !== id), costs: current.costs.filter((item) => item.vehicleId !== id), sales: current.sales.filter((item) => item.vehicleId !== id) })); return; } await pb.collection("vehicles").delete(id); await refresh(); },
     resetDemo() { if (!hasPocketBase) setData(demoData); }

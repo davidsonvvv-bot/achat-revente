@@ -4,8 +4,10 @@
 
 1. Importez le dépôt GitHub `davidsonvvv-bot/achat-revente` dans Netlify.
 2. Netlify détecte `netlify.toml` et exécute `pnpm build`.
-3. Ajoutez la variable d’environnement `NEXT_PUBLIC_POCKETBASE_URL` avec l’URL HTTPS publique de PocketBase, sans `/` final.
+3. Ajoutez `NEXT_PUBLIC_POCKETBASE_URL` avec l’URL HTTPS publique de PocketBase, sans `/` final.
 4. Redéployez le site.
+
+> La migration `make_local_instance_passwordless` ouvre les données en lecture et écriture sans connexion. Cette configuration est assumée pour ce projet, mais ne convient pas à des données privées ou sensibles.
 
 ## Backend : PocketBase
 
