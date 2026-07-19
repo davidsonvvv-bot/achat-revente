@@ -1,4 +1,3 @@
-const supportedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const maxImageSize = 1600;
 
 function readFile(file: Blob): Promise<string> {
@@ -21,7 +20,7 @@ function loadImage(file: File): Promise<HTMLImageElement> {
 }
 
 export async function prepareVehiclePhoto(file: File): Promise<string> {
-  if (!supportedTypes.has(file.type)) throw new Error("Choisis une photo JPEG, PNG ou WebP. Sur iPhone, utilise « Prendre une photo » plutôt qu’une photo HEIC.");
+  if (!file.type.startsWith("image/")) throw new Error("Choisis une image depuis ta galerie.");
   if (file.size > 15 * 1024 * 1024) throw new Error("La photo est trop lourde. Choisis une image de moins de 15 Mo.");
 
   const image = await loadImage(file);
