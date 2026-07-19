@@ -32,6 +32,20 @@ export function AppProviders({ children }: { children: ReactNode }) {
     const saved = window.localStorage.getItem(storageKey); setData(saved ? JSON.parse(saved) : emptyData); setReady(true);
   }, [refresh]);
   useEffect(() => { if (!hasPocketBase && ready) window.localStorage.setItem(storageKey, JSON.stringify(data)); }, [data, ready]);
+  useEffect(() => {
+    if (!pb) return;
+    const pocketBase = pb;
+    let active = true;
+    const collections = ["vehicles", "repairs", "costs", "sales"];
+    const subscribe = async () => {
+      try { await Promise.all(collections.map((collection) => pocketBase.collection(collection).subscribe("*", () => { if (active) void refresh(); }))); }
+      catch { /* Data loading already displays a useful error if the server is unavailable. */ }
+    };
+    const refreshWhenVisible = () => { if (document.visibilityState === "visible") void refresh(); };
+    void subscribe();
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    return () => { active = false; document.removeEventListener("visibilitychange", refreshWhenVisible); collections.forEach((collection) => { void pocketBase.collection(collection).unsubscribe("*"); }); };
+  }, [refresh]);
 
   const localAddVehicle = (vehicle: Omit<Vehicle, "id" | "createdAt" | "updatedAt">) => { const id = uid(); const now = new Date().toISOString(); setData((current) => ({ ...current, vehicles: [{ ...vehicle, id, createdAt: now, updatedAt: now }, ...current.vehicles] })); return id; };
   const store = useMemo<Store>(() => ({
